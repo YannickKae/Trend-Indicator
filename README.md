@@ -11,7 +11,7 @@ The **RangeFilter** is designed to smooth out minor fluctuations in financial ti
 
 ## Mathematical & Statistical Concepts
 
-### 1. Conditional Moving Averages
+### Conditional Moving Averages
 
 #### Conditional Exponential Moving Average (EMA)
 
@@ -21,7 +21,7 @@ An **Exponential Moving Average (EMA)** is a type of moving average that places 
 
 A **Simple Moving Average (SMA)** calculates the average of a set of data points over a specified period. The **Conditional SMA** computes this average only when certain conditions are met, focusing the smoothing effect on relevant data and improving the accuracy of trend detection.
 
-### 2. Range Size Calculation
+### Range Size Calculation
 
 The range size is a crucial element in the RangeFilter, acting as a threshold to determine what constitutes a significant price movement. Several statistical measures are employed to calculate the range size:
 
@@ -42,7 +42,7 @@ The **Average Change** represents the average of the absolute differences betwee
 
 The **Standard Deviation** quantifies the amount of variation or dispersion in a set of price values. A higher standard deviation indicates that the prices are spread out over a wider range, reflecting higher volatility. This measure is useful for understanding the extent to which prices deviate from the average price.
 
-### 3. Range Filter Calculation
+### Range Filter Calculation
 
 The RangeFilter uses one of two calculation types to determine whether a price movement is significant based on the range size.
 
@@ -62,7 +62,7 @@ The RangeFilter uses one of two calculation types to determine whether a price m
 
 The **Upper Band** and **Lower Band** are calculated by adding and subtracting the range size from the filter value, respectively. These bands serve as dynamic thresholds that help in identifying when the price has moved significantly enough to consider a trend change.
 
-### 4. Trend Detection
+### Trend Detection
 
 The filter direction is determined by comparing the current filter value with the previous one:
 
