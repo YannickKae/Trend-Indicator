@@ -7,7 +7,7 @@
   <i>Range Filter applied to BTC-USD</i>
 </p>
 
-The **RangeFilter** is designed to smooth out minor fluctuations in financial time series data, such as stock prices or commodity prices. It provides a clearer view of significant trends by filtering out insignificant price movements, allowing traders and analysts to focus on meaningful shifts in the market, while also being relatively robust to trendless markets.
+The **RangeFilter** is designed to smooth out minor fluctuations in financial time series data, such as stock prices or commodity prices. It provides a clearer view of significant trends by filtering out insignificant price movements, allowing to focus on meaningful shifts in the market, while also being relatively robust to trendless markets.
 
 ## Mathematical & Statistical Concepts
 
