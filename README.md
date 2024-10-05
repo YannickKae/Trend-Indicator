@@ -196,4 +196,3 @@ This project is a Python translation of the original Pine Script by **Donovan Wa
 
 - **Original Author**: Donovan Wall
 - **Original License**: Mozilla Public License 2.0
-- **License**: This project is licensed under the Mozilla Public License 2.0. You can find the full license text at [https://mozilla.org/MPL/2.0/](https://mozilla.org/MPL/2.0/).
