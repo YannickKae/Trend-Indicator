@@ -1,99 +1,210 @@
-# RangeFilter: Advanced Price Movement Analysis Tool
+# Trend Indicator
 
-## Abstract
+The **RangeFilter** is designed to smooth out minor fluctuations in financial time series data, such as stock prices, forex rates, or commodity prices. It provides a clearer view of significant trends by filtering out insignificant price movements, allowing traders and analysts to focus on meaningful shifts in the market.
 
-This document presents the `RangeFilter` class, a sophisticated tool designed for smoothing minor price movements in financial time series data. The `RangeFilter` implements a customizable algorithm that provides a clearer view of underlying trends in market data. This implementation is particularly useful for traders and quantitative analysts seeking to filter out noise and identify significant price movements.
+This Python implementation is a translation of the original Pine Script developed by **Donovan Wall**, licensed under the **Mozilla Public License 2.0**.
 
-## 1. Introduction
+## Mathematical and Statistical Concepts
 
-The `RangeFilter` class is implemented in Python, utilizing the pandas, numpy, and matplotlib libraries. It is designed to process financial time series data, typically consisting of open, high, low, and close prices for a given asset.
+The RangeFilter leverages several mathematical and statistical concepts to determine significant price movements and trends in time series data. Below is a verbal explanation of the key components and how they contribute to the filtering process.
 
-## 2. Methodology
+### 1. Conditional Moving Averages
 
-### 2.1 Initialization
+#### Conditional Exponential Moving Average (EMA)
 
-The `RangeFilter` is initialized with several parameters that allow for customization of the filtering process:
+An **Exponential Moving Average (EMA)** is a type of moving average that places greater weight on recent data points, making it more responsive to new information. The **Conditional EMA** used in the RangeFilter updates its value only when a specific condition is met. This selective updating allows the filter to react to significant changes while ignoring minor, less relevant fluctuations.
 
-- `data`: pandas DataFrame containing price data
-- `f_type`: Type of filter calculation ('Type 1' or 'Type 2')
-- `mov_src`: Source for movement detection ('Close' or 'Wicks')
-- `rng_qty`: Quantity for range size calculation
-- `rng_scale`: Scale method for range size
-- `rng_per`: Period for range calculations
-- `smooth_range`: Boolean to decide if the range should be smoothed
-- `smooth_per`: Period for smoothing the range
-- `av_vals`: Boolean to decide if filter values should be averaged over filter changes
-- `av_samples`: Number of filter changes to average when `av_vals` is True
+#### Conditional Simple Moving Average (SMA)
 
-### 2.2 Core Algorithms
+A **Simple Moving Average (SMA)** calculates the average of a set of data points over a specified period. The **Conditional SMA** computes this average only when certain conditions are met, focusing the smoothing effect on relevant data and improving the accuracy of trend detection.
 
-#### 2.2.1 Conditional Exponential Moving Average (EMA)
+### 2. Range Size Calculation
 
-The Conditional EMA is calculated as follows:
+The range size is a crucial element in the RangeFilter, acting as a threshold to determine what constitutes a significant price movement. Several statistical measures are employed to calculate the range size:
 
-$$ EMA_t = \begin{cases} 
-x_t & \text{if } t = 1 \text{ or } \text{prev}_{\text{EMA}} \text{ is NaN} \\
-(x_t - \text{prev}_{\text{EMA}}) \cdot k + \text{prev}_{\text{EMA}} & \text{if condition is True} \\
-\text{prev}_{\text{EMA}} & \text{otherwise}
-\end{cases} $$
+#### True Range (TR) and Average True Range (ATR)
 
-where $k = \frac{2}{n+1}$, $n$ is the EMA period, and $x_t$ is the current data point.
+- **True Range (TR)**: This measures market volatility by considering the largest of three values:
+  - The difference between the current period's high and low prices.
+  - The absolute difference between the current high and the previous closing price.
+  - The absolute difference between the current low and the previous closing price.
 
-#### 2.2.2 Range Size Calculation
+- **Average True Range (ATR)**: The ATR is the moving average of the True Range over a specified number of periods. It provides a smoothed measure of volatility, helping to identify when the market is more likely to experience significant price movements.
 
-The range size is calculated based on the selected scale method. For example, when using the Average True Range (ATR) scale:
+#### Average Change (AC)
 
-$$ \text{Range Size} = q \cdot \text{ATR}_n $$
+The **Average Change** represents the average of the absolute differences between consecutive mid-price values over a specified period. The mid-price is typically calculated as the average of the high and low prices for each period. This measure helps in assessing the typical price movement magnitude.
 
-where $q$ is the range quantity and $\text{ATR}_n$ is the n-period ATR.
+#### Standard Deviation (SD)
 
-#### 2.2.3 Range Filter Calculation
+The **Standard Deviation** quantifies the amount of variation or dispersion in a set of price values. A higher standard deviation indicates that the prices are spread out over a wider range, reflecting higher volatility. This measure is useful for understanding the extent to which prices deviate from the average price.
 
-The Range Filter value is calculated using one of two methods:
+### 3. Range Filter Calculation
 
-Type 1:
-$$ \text{RFilter}_t = \begin{cases}
-h_t - r & \text{if } h_t - r > \text{RFilter}_{t-1} \\
-l_t + r & \text{if } l_t + r < \text{RFilter}_{t-1} \\
-\text{RFilter}_{t-1} & \text{otherwise}
-\end{cases} $$
+The RangeFilter uses one of two calculation types to determine whether a price movement is significant based on the range size.
 
-Type 2:
-$$
-\text{RFilter}_t = \begin{cases}
-\text{RFilter}_{t-1} + \lfloor\frac{|h_t - \text{RFilter}_{t-1}|}{r}\rfloor \cdot r & \text{if } h_t \geq \text{RFilter}_{t-1} + r \\
-\text{RFilter}_{t-1} - \lfloor\frac{|l_t - \text{RFilter}_{t-1}|}{r}\rfloor \cdot r & \text{if } l_t \leq \text{RFilter}_{t-1} - r \\
-\text{RFilter}_{t-1} & \text{otherwise}
-\end{cases}
-$$
+#### Filter Types
 
-where $h_t$ is the high price, $l_t$ is the low price, and $r$ is the range size.
+- **Type 1**:
+  - **Upward Movement**: If the current high price minus the range size is greater than the previous filter value, the filter updates to this new higher value.
+  - **Downward Movement**: If the current low price plus the range size is less than the previous filter value, the filter updates to this new lower value.
+  - **No Significant Movement**: If neither condition is met, the filter value remains unchanged.
 
-## 3. Implementation
+- **Type 2**:
+  - **Upward Movement**: If the current high price is greater than or equal to the previous filter value plus the range size, the filter increments by the range size. This process can repeat multiple times if the price movement exceeds multiple range sizes.
+  - **Downward Movement**: If the current low price is less than or equal to the previous filter value minus the range size, the filter decrements by the range size, potentially multiple times.
+  - **No Significant Movement**: The filter remains unchanged if the price does not move beyond the thresholds defined by the range size.
 
-The `RangeFilter` class implements the following key methods:
+#### Bands Calculation
 
-1. `__init__`: Initializes the RangeFilter with user-defined parameters.
-2. `Cond_EMA`: Calculates the Conditional Exponential Moving Average.
-3. `Cond_SMA`: Calculates the Conditional Simple Moving Average.
-4. `Stdev`: Calculates the Standard Deviation.
-5. `rng_size`: Calculates the range size based on the selected scale.
-6. `rng_filt`: Calculates the Range Filter values.
-7. `run`: Executes the Range Filter calculations on the provided data.
+The **Upper Band** and **Lower Band** are calculated by adding and subtracting the range size from the filter value, respectively. These bands serve as dynamic thresholds that help in identifying when the price has moved significantly enough to consider a trend change.
 
-## 4. Usage
+### 4. Trend Detection
 
-To use the `RangeFilter`:
+The filter direction is determined by comparing the current filter value with the previous one:
 
-1. Initialize the `RangeFilter` with desired parameters.
-2. Call the `run()` method to perform calculations.
-3. Access the filtered data and additional indicators through the `data` attribute or `get_data()` method.
+- **Upward Trend**: If the current filter value is greater than the previous filter value, it indicates an upward trend.
+- **Downward Trend**: If the current filter value is less than the previous filter value, it indicates a downward trend.
+- **Neutral Trend**: If the filter value remains the same, the trend direction is considered unchanged from the previous period.
 
-## 5. Conclusion
+Based on the filter direction, **Upward** and **Downward** indicators are set, which can be used for generating trading signals or for coloring data visualizations to highlight trends.
 
-The `RangeFilter` class provides a flexible and powerful tool for analyzing price movements in financial time series data. By effectively filtering out minor fluctuations, it allows for clearer identification of significant trends, potentially improving trading and investment decision-making processes.
+## Implementation Details
+
+### Initialization Parameters
+
+When setting up the RangeFilter, several parameters allow customization to fit different analysis needs:
+
+- **Data**: A pandas DataFrame containing the financial time series data with columns named `'open'`, `'high'`, `'low'`, and `'close'`.
+
+- **Filter Type (`f_type`)**: Specifies the filter calculation method to use. Options are `'Type 1'` or `'Type 2'` as described above.
+
+- **Movement Source (`mov_src`)**: Determines the price data to use for detecting movements:
+  - `'Close'`: Uses the closing prices.
+  - `'Wicks'`: Uses the high and low prices, capturing the full price range of each period.
+
+- **Range Quantity (`rng_qty`)**: A multiplier applied in the range size calculation, influencing the sensitivity of the filter to price movements.
+
+- **Range Scale (`rng_scale`)**: The statistical method used for calculating the range size:
+  - **Points**: A fixed value representing price points.
+  - **Pips**: A fixed value in pips, commonly used in forex markets.
+  - **Ticks**: A fixed tick size, representing the smallest possible price movement.
+  - **Percentage of Price**: A percentage of the current closing price.
+  - **ATR**: Uses the Average True Range over a specified period.
+  - **Average Change**: Uses the average of absolute price changes over a specified period.
+  - **Standard Deviation**: Uses the standard deviation of prices over a specified period.
+  - **Absolute**: A fixed absolute value.
+
+- **Range Period (`rng_per`)**: The number of periods to use when calculating statistical measures like ATR, Average Change, and Standard Deviation.
+
+- **Smooth Range (`smooth_range`)**: A boolean indicating whether to apply smoothing to the range size using an EMA, which can help reduce noise from volatility spikes.
+
+- **Smoothing Period (`smooth_per`)**: The period used for smoothing the range size if `smooth_range` is enabled.
+
+- **Average Filter Values (`av_vals`)**: A boolean indicating whether to average filter values over several filter changes, providing an additional level of smoothing.
+
+- **Average Samples (`av_samples`)**: The number of filter changes to include when averaging filter values if `av_vals` is enabled.
+
+### Algorithm Steps
+
+1. **Initialization**: Set initial values for all variables, including moving averages, filter values, and counters.
+
+2. **Iterate Over Data**: For each data point in the time series:
+   - **Select Movement Source**: Based on `mov_src`, decide whether to use closing prices or high and low prices for calculations.
+   - **Calculate Mid-Price**: Compute the average of the selected high and low prices for the period.
+   - **Compute Range Size**:
+     - Calculate statistical measures (e.g., TR, ATR, Average Change, Standard Deviation) based on the selected `rng_scale`.
+     - Apply smoothing to the range size using an EMA if `smooth_range` is enabled.
+   - **Calculate Filter Value**:
+     - Use the selected filter type (`Type 1` or `Type 2`) to determine the new filter value.
+     - If `av_vals` is enabled, average the filter values over the last `av_samples` changes.
+   - **Compute Bands**: Determine the upper and lower bands by adding and subtracting the range size from the filter value.
+   - **Trend Detection**: Compare the current and previous filter values to establish the filter direction and set trend indicators.
+   - **Color Coding**: Assign colors to the filter line and bars for visualization, based on the trend direction.
+
+3. **Store Results**: Append the calculated values to the DataFrame for analysis or visualization.
+
+## Usage
+
+### 1. Prepare Your Data
+
+Ensure your data is in a pandas DataFrame with the following columns:
+
+- `'open'`
+- `'high'`
+- `'low'`
+- `'close'`
+
+The data should be sorted in chronological order, from oldest to newest.
+
+### 2. Initialize the RangeFilter
+
+```python
+from range_filter import RangeFilter
+
+# Create an instance of RangeFilter with your data and desired parameters
+rf = RangeFilter(
+    data=your_dataframe,
+    f_type='Type 1',
+    mov_src='Close',
+    rng_qty=2.618,
+    rng_scale='Average Change',
+    rng_per=14,
+    smooth_range=True,
+    smooth_per=27,
+    av_vals=False,
+    av_samples=2
+)
+```
+
+### 3. Run the Filter
+
+```python
+# Execute the range filter calculations
+rf.run()
+```
+
+### 4. Retrieve the Results
+
+```python
+# Get the modified DataFrame with the filter results
+filtered_data = rf.get_data()
+```
+
+The resulting DataFrame will include additional columns such as `'filt'`, `'h_band'`, `'l_band'`, `'fdir'`, `'upward'`, `'downward'`, `'filt_color'`, `'bar_color'`, and `'external_trend_output'`.
+
+### 5. Analyze or Visualize
+
+You can analyze the trends or create visualizations to interpret the results. For example, you might plot the closing prices alongside the filter values and bands to see how the filter smooths out minor fluctuations.
+
+## Visual Interpretation
+
+The RangeFilter helps in visualizing significant trends by smoothing out minor price movements:
+
+- **Upward Trends**: Indicated when the filter value increases, suggesting that price movements have exceeded the range size in an upward direction.
+- **Downward Trends**: Indicated when the filter value decreases, suggesting that price movements have exceeded the range size in a downward direction.
+- **Bands**: The upper and lower bands act as dynamic thresholds for detecting significant price movements, helping to visualize periods of high volatility.
+
+By focusing on movements that exceed the calculated range size, the filter effectively removes noise from the data, allowing for clearer identification of meaningful trends.
+
+## License and Attribution
+
+This project is a Python translation of the original Pine Script by **Donovan Wall**.
+
+- **Original Author**: Donovan Wall
+- **Original License**: Mozilla Public License 2.0
+- **License**: This project is licensed under the Mozilla Public License 2.0. You can find the full license text at [https://mozilla.org/MPL/2.0/](https://mozilla.org/MPL/2.0/).
 
 ## References
 
-1. Wilder, J. W. (1978). New Concepts in Technical Trading Systems. Trend Research.
-2. Murphy, J. J. (1999). Technical Analysis of the Financial Markets. New York Institute of Finance.
+- **Exponential Moving Average**: A moving average that places a greater weight and significance on the most recent data points.
+- **True Range and Average True Range**: Measures of market volatility that consider the complete range of price movement.
+- **Standard Deviation**: A statistical measure that quantifies the amount of variation or dispersion in a set of data values.
+
+## Conclusion
+
+The **RangeFilter** provides a mathematically grounded method for filtering financial time series data, emphasizing significant price movements while minimizing the impact of minor fluctuations. By applying statistical techniques such as moving averages and volatility measures, it offers a clearer view of market trends and can be a valuable tool for traders and analysts seeking to make data-driven decisions.
+
+---
+
+**Note**: Replace `from range_filter import RangeFilter` with the actual path or module name where the `RangeFilter` class is defined in your project.
