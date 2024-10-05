@@ -1,12 +1,15 @@
 # Trend Indicator
 
-The **RangeFilter** is designed to smooth out minor fluctuations in financial time series data, such as stock prices, forex rates, or commodity prices. It provides a clearer view of significant trends by filtering out insignificant price movements, allowing traders and analysts to focus on meaningful shifts in the market.
+<p align="center">
+  <img src="Bitcoin Range Filter.png" style="width:100%">
+</p>
+<p align="center">
+  <i>Range Filter applied to BTC-USD</i>
+</p>
 
-This Python implementation is a translation of the original Pine Script developed by **Donovan Wall**, licensed under the **Mozilla Public License 2.0**.
+The **RangeFilter** is designed to smooth out minor fluctuations in financial time series data, such as stock prices or commodity prices. It provides a clearer view of significant trends by filtering out insignificant price movements, allowing traders and analysts to focus on meaningful shifts in the market, while also being relatively robust to trendless markets.
 
-## Mathematical and Statistical Concepts
-
-The RangeFilter leverages several mathematical and statistical concepts to determine significant price movements and trends in time series data. Below is a verbal explanation of the key components and how they contribute to the filtering process.
+## Mathematical & Statistical Concepts
 
 ### 1. Conditional Moving Averages
 
