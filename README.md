@@ -192,7 +192,7 @@ By focusing on movements that exceed the calculated range size, the filter effec
 
 ## License and Attribution
 
-This project is a Python translation of the original Pine Script by **Donovan Wall**.
+This project is based on Pine Script code by **Donovan Wall**.
 
 - **Original Author**: Donovan Wall
 - **Original License**: Mozilla Public License 2.0
